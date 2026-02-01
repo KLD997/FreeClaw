@@ -64,16 +64,16 @@ firefox http://127.0.0.1:18789/
 ┌────────────────────────────────────────────────────────────┐
 │ FreeBSD 15 Host                                            │
 │                                                            │
-│  127.0.0.1:18789 ◄── socat ◄── bridge0 (10.30.0.1)       │
+│  127.0.0.1:18789 ◄── socat ◄── bridge0 (10.30.0.1)         │
 │                                    │                       │
 │                                    │ epair0a               │
-│  ┌─────────────────────────────────▼──────────────┐       │
-│  │ Jail: openclaw (VNET)                          │       │
-│  │   - IP: 10.30.0.10/24                          │       │
-│  │   - OpenClaw Gateway: 0.0.0.0:18789            │       │
-│  │   - User: <your-username>                       │       │
-│  │   - Storage: ZFS + nullfs mounts               │       │
-│  └────────────────────────────────────────────────┘       │
+│  ┌─────────────────────────────────▼──────────────┐        │
+│  │ Jail: openclaw (VNET)                          │        │
+│  │   - IP: 10.30.0.10/24                          │        │
+│  │   - OpenClaw Gateway: 0.0.0.0:18789            │        │
+│  │   - User: <your-username>                      │        │
+│  │   - Storage: ZFS + nullfs mounts               │        │
+│  └────────────────────────────────────────────────┘        │
 └────────────────────────────────────────────────────────────┘
 ```
 
@@ -338,7 +338,7 @@ Configuration files and documentation: CC0 / Public Domain
 ## Support
 
 - **Documentation:** [docs/](docs/)
-- **Issues:** [GitHub Issues](https://github.com/yourusername/openclaw-freebsd/issues)
+- **Issues:** [GitHub Issues](https://github.com/KLD997/openclaw-freebsd/issues)
 - **FreeBSD Forums:** [forums.freebsd.org](https://forums.freebsd.org/)
 - **OpenClaw Docs:** Check upstream project
 
