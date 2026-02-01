@@ -1,0 +1,23 @@
+openclaw-freebsd/
+├── .github/
+│   └── ISSUE_TEMPLATE.md          # Bug report template
+├── .gitignore                      # Git ignore rules
+├── CHANGELOG.md                    # Version history
+├── LICENSE                         # BSD-2-Clause license
+├── README.md                       # Main repository documentation
+├── openclaw-freebsd-install.sh    # Automated installer script
+├── openclaw-tui.zsh               # Optional TUI manager
+├── config/                         # Configuration examples
+│   ├── jail.conf.example           # Jail configuration
+│   ├── jail.fstab.example          # nullfs mounts
+│   ├── openclaw_forward.rc         # Host socat service (rc.d)
+│   ├── openclaw_gateway.rc         # Jail gateway service (rc.d)
+│   └── pf.conf.example             # Firewall configuration
+└── docs/                           # Documentation
+    ├── HARDWARE.md                 # Tested hardware specifications
+    ├── INSTALL.md                  # Complete installation guide
+    ├── PACKAGES.md                 # Package requirements
+    ├── QUICKSTART.md               # Fast setup guide
+    └── TROUBLESHOOTING.md          # Problem solving guide
+
+Total: 17 files

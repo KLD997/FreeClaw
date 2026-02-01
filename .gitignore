@@ -1,0 +1,52 @@
+# OpenClaw FreeBSD - Git Ignore
+
+# Secrets and tokens
+*.token
+.env
+openclaw.json
+
+# Backup files
+*.bak
+*.old
+*~
+
+# Logs
+*.log
+*.log.*
+
+# PID files
+*.pid
+
+# Temporary files
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.sublime-*
+
+# FreeBSD specific
+.snap/
+
+# Test/development
+test/
+scratch/
+dev/
+
+# Documentation build artifacts
+docs/_build/
+docs/.buildinfo
+
+# Python cache (if using any python tools)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Node modules (shouldn't be here, but just in case)
+node_modules/
+package-lock.json
