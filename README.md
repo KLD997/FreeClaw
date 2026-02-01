@@ -1,5 +1,8 @@
 # OpenClaw on FreeBSD 15
 
+![FreeClaw Logo](logo/freeclaw-logo-text.png)
+
+
 **Production-ready OpenClaw deployment using VNET jails, socat forwarding, and ZFS storage**
 
 [![FreeBSD](https://img.shields.io/badge/FreeBSD-15.0-red?logo=freebsd)](https://www.freebsd.org/)
