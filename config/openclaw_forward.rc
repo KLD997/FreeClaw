@@ -1,0 +1,132 @@
+#!/bin/sh
+#
+# PROVIDE: openclaw_forward
+# REQUIRE: NETWORKING
+# KEYWORD: shutdown
+#
+# Add to /etc/rc.conf:
+#   openclaw_forward_enable="YES"
+#   openclaw_forward_jail_ip="10.30.0.10"  # optional
+#   openclaw_forward_port="18789"          # optional
+#
+
+. /etc/rc.subr
+
+name="openclaw_forward"
+rcvar="openclaw_forward_enable"
+
+load_rc_config $name
+
+: ${openclaw_forward_enable:="NO"}
+: ${openclaw_forward_jail_ip:="10.30.0.10"}
+: ${openclaw_forward_port:="18789"}
+: ${openclaw_forward_bind:="127.0.0.1"}
+: ${openclaw_forward_pidfile:="/var/run/${name}.pid"}
+: ${openclaw_forward_log:="/var/log/${name}.log"}
+
+pidfile="${openclaw_forward_pidfile}"
+
+start_cmd="${name}_start"
+stop_cmd="${name}_stop"
+status_cmd="${name}_status"
+
+openclaw_forward_start()
+{
+    if [ ! -x /usr/local/bin/socat ]; then
+        err 1 "socat not found: pkg install socat"
+    fi
+
+    # Check if already running
+    if [ -f "${pidfile}" ]; then
+        pid=$(cat "${pidfile}" 2>/dev/null)
+        if [ -n "${pid}" ] && kill -0 "${pid}" 2>/dev/null; then
+            echo "${name} already running as pid ${pid}."
+            return 0
+        fi
+        rm -f "${pidfile}"
+    fi
+
+    echo "Starting ${name}."
+    /usr/local/bin/socat \
+        TCP-LISTEN:${openclaw_forward_port},bind=${openclaw_forward_bind},fork,reuseaddr \
+        TCP:${openclaw_forward_jail_ip}:${openclaw_forward_port} \
+        >> "${openclaw_forward_log}" 2>&1 &
+
+    echo $! > "${pidfile}"
+
+    # Verify it started
+    sleep 0.2
+    pid=$(cat "${pidfile}" 2>/dev/null)
+    if [ -n "${pid}" ] && kill -0 "${pid}" 2>/dev/null; then
+        echo "${name} started as pid ${pid}."
+        return 0
+    fi
+
+    echo "${name} failed to start. Check ${openclaw_forward_log}"
+    rm -f "${pidfile}"
+    return 1
+}
+
+openclaw_forward_stop()
+{
+    if [ ! -f "${pidfile}" ]; then
+        echo "${name} not running (no pidfile)."
+        return 0
+    fi
+
+    pid=$(cat "${pidfile}" 2>/dev/null)
+    if [ -z "${pid}" ]; then
+        echo "${name} not running (empty pidfile)."
+        rm -f "${pidfile}"
+        return 0
+    fi
+
+    if ! kill -0 "${pid}" 2>/dev/null; then
+        echo "${name} not running (stale pidfile)."
+        rm -f "${pidfile}"
+        return 0
+    fi
+
+    echo "Stopping ${name} (pid ${pid})."
+    kill "${pid}" 2>/dev/null
+
+    # Wait for exit
+    i=0
+    while kill -0 "${pid}" 2>/dev/null; do
+        i=$((i + 1))
+        [ "${i}" -ge 10 ] && break
+        sleep 0.5
+    done
+
+    if kill -0 "${pid}" 2>/dev/null; then
+        echo "Forcing ${name} to stop."
+        kill -9 "${pid}" 2>/dev/null
+    fi
+
+    rm -f "${pidfile}"
+    echo "${name} stopped."
+}
+
+openclaw_forward_status()
+{
+    if [ ! -f "${pidfile}" ]; then
+        echo "${name} is not running."
+        return 1
+    fi
+
+    pid=$(cat "${pidfile}" 2>/dev/null)
+    if [ -z "${pid}" ]; then
+        echo "${name} is not running (empty pidfile)."
+        return 1
+    fi
+
+    if kill -0 "${pid}" 2>/dev/null; then
+        echo "${name} is running as pid ${pid}."
+        return 0
+    fi
+
+    echo "${name} is not running (stale pidfile)."
+    return 1
+}
+
+run_rc_command "$1"

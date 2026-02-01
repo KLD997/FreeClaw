@@ -1,0 +1,92 @@
+#!/bin/sh
+#
+# PROVIDE: openclaw_gateway
+# REQUIRE: LOGIN
+# KEYWORD: shutdown
+#
+. /etc/rc.subr
+
+name="openclaw_gateway"
+rcvar="openclaw_gateway_enable"
+
+load_rc_config $name
+
+: ${openclaw_gateway_enable:="NO"}
+: ${openclaw_gateway_user:="kld"}
+: ${openclaw_gateway_pid:="/var/run/openclaw/openclaw_gateway.pid"}
+
+pidfile="${openclaw_gateway_pid}"
+
+start_precmd="${name}_prestart"
+start_cmd="${name}_start"
+stop_cmd="${name}_stop"
+status_cmd="${name}_status"
+
+openclaw_gateway_prestart()
+{
+  install -d -m 0755 /var/run/openclaw
+  chown ${openclaw_gateway_user}:${openclaw_gateway_user} /var/run/openclaw 2>/dev/null || true
+
+  install -d -m 0755 /var/log
+  touch /var/log/openclaw_gateway.log
+  chown ${openclaw_gateway_user}:${openclaw_gateway_user} /var/log/openclaw_gateway.log 2>/dev/null || true
+}
+
+openclaw_gateway_start()
+{
+  echo "Starting ${name} as ${openclaw_gateway_user}..."
+  su -m "${openclaw_gateway_user}" -c "/usr/local/libexec/openclaw-gateway-run" || true
+
+  if [ -f "${pidfile}" ] && kill -0 "$(cat "${pidfile}")" 2>/dev/null; then
+    echo "${name} started, pid $(cat "${pidfile}")"
+    return 0
+  fi
+
+  echo "Failed to start ${name}. See /var/log/openclaw_gateway.log"
+  return 1
+}
+
+openclaw_gateway_stop()
+{
+  if [ ! -f "${pidfile}" ]; then
+    echo "${name} not running (no pidfile)"
+    return 0
+  fi
+
+  pid="$(cat "${pidfile}")"
+  if ! kill -0 "${pid}" 2>/dev/null; then
+    echo "${name} not running (stale pidfile)"
+    rm -f "${pidfile}"
+    return 0
+  fi
+
+  echo "Stopping ${name} (pid ${pid})..."
+  kill "${pid}" 2>/dev/null || true
+
+  i=0
+  while kill -0 "${pid}" 2>/dev/null; do
+    i=$((i+1))
+    [ "${i}" -ge 20 ] && break
+    sleep 0.5
+  done
+
+  if kill -0 "${pid}" 2>/dev/null; then
+    echo "Still running; killing hard..."
+    kill -9 "${pid}" 2>/dev/null || true
+  fi
+
+  rm -f "${pidfile}"
+  echo "${name} stopped."
+}
+
+openclaw_gateway_status()
+{
+  if [ -f "${pidfile}" ] && kill -0 "$(cat "${pidfile}")" 2>/dev/null; then
+    echo "${name} is running as pid $(cat "${pidfile}")"
+    return 0
+  fi
+  echo "${name} is not running."
+  return 1
+}
+
+run_rc_command "$1"

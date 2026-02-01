@@ -1,0 +1,54 @@
+# /etc/pf.conf
+
+ext_if   = "rge0"
+ts_if    = "tailscale0"
+jail_if  = "bridge0"
+jail_net = "10.30.0.0/24"
+
+# Host-side jail gateway IP (bridge0 IP on host)
+host_jail_ip = "10.30.0.1"
+
+# OpenClaw in jail
+openclaw_ip   = "10.30.0.10"
+openclaw_port = "18789"
+
+kdeconnect_ports = "1714:1764"
+
+##### OPTIONS
+set block-policy drop
+set state-policy floating
+
+##### NORMALIZATION
+scrub in all
+
+##### TRANSLATION
+
+# NAT jail traffic out to WAN
+nat on $ext_if from $jail_net to any -> ($ext_if)
+
+# NOTE: localhost -> jail forwarding handled by socat (openclaw_forward service)
+# pf rdr+nat across interfaces doesn't track state properly
+
+##### FILTERING
+
+block in all
+
+# Loopback — allow all (includes rdr entry point)
+pass quick on lo0 all
+
+# Bridge — allow all host<->jail traffic unconditionally
+pass quick on $jail_if all
+
+# Host outbound (WAN)
+pass out on $ext_if inet proto { tcp udp icmp } from ($ext_if) to any keep state
+
+# Jail outbound: DNS, HTTP, HTTPS
+pass out on $ext_if inet proto udp from $jail_net to any port 53 keep state
+pass out on $ext_if inet proto tcp from $jail_net to any port { 80 443 } keep state
+
+##### Tailscale
+pass in  on $ts_if all keep state
+pass out on $ts_if all keep state
+
+pass in  on $ts_if proto { tcp udp } to ($ts_if) port $kdeconnect_ports keep state
+pass out on $ts_if proto { tcp udp } from ($ts_if) port $kdeconnect_ports keep state

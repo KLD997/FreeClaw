@@ -1,0 +1,18 @@
+# /etc/jail.conf.d/openclaw.conf
+
+openclaw {
+  host.hostname = "openclaw.local";
+  path = "/usr/jails/openclaw";
+
+  # Optional: nullfs mounts you allow (projects, etc.)
+  mount.fstab = "/etc/jail.fstab.openclaw";
+
+  # Keep /dev minimal-ish (you can define devfs rules if you want)
+  # devfs_ruleset = 45;
+
+  # Bring up networking inside the jail
+  exec.start += "/sbin/ifconfig lo0 127.0.0.1 up";
+  exec.start += "/sbin/ifconfig ${name}b 10.30.0.10/24 up";
+  exec.start += "/sbin/route add default 10.30.0.1";
+}
+

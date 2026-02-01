@@ -1,0 +1,6 @@
+# Allow access to shared data directory
+/home/kld/ocDownloads	/usr/jails/openclaw/home/kld/ocDownloads	nullfs 	rw,noatime  	0	0
+
+# Allow request to evelvated privileged commands
+var/run/openclaw-requests  /usr/jails/openclaw/var/run/openclaw-requests  nullfs rw,noatime  0 0
+
