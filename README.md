@@ -12,7 +12,7 @@
 
 ## Overview
 
-This repository contains a complete, tested setup for running [OpenClaw](https://github.com/anthropics/openclaw) on FreeBSD 15 using:
+This repository contains a complete, tested setup for running [OpenClaw](https://github.com/openclaw/openclaw) on FreeBSD 15 using:
 
 - **VNET jails** for complete network isolation
 - **socat forwarding** for localhost → jail connectivity
