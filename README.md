@@ -20,8 +20,6 @@ This repository contains a complete, tested setup for running [OpenClaw](https:/
 - **Automated installation** via shell script
 - **rc.d services** for proper FreeBSD integration
 
-**Status:** ✅ Production-ready and tested on FreeBSD 15.0-RELEASE
-
 ---
 
 ## Quick Start
