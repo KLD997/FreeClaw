@@ -127,33 +127,7 @@ openclaw-freebsd/
 
 ---
 
-## Requirements
-
-### System Requirements
-
-- **OS:** FreeBSD 15.0 or later
-- **RAM:** 512MB minimum, 1GB+ recommended
-- **Disk:** 5GB minimum, 10GB+ recommended
-- **Network:** Any Ethernet/WiFi interface
-
-### Package Requirements
-
-```sh
-# Host packages
-pkg install -y jail ezjail sysrc pf socat git zsh bsddialog node22 npm-node22
-
-# Jail packages (installed automatically)
-pkg install -y ca_root_nss curl git jq tmux node22 npm-node22
-npm install -g openclaw@latest
-```
-
-See [docs/PACKAGES.md](docs/PACKAGES.md) for complete list.
-
----
-
-## Tested Hardware
-
-This setup has been tested on:
+### This setup has been tested on:
 
 - **System:** ASRock B650M PG Riptide Desktop
 - **CPU:** AMD Ryzen 5 7600 (6-core, 12-thread)
@@ -162,70 +136,6 @@ This setup has been tested on:
 - **Network:** Realtek RTL8125 2.5GbE
 
 See [docs/HARDWARE.md](docs/HARDWARE.md) for complete specifications.
-
----
-
-## Usage
-
-### Starting Services
-
-```sh
-# Start entire stack
-doas service jail start openclaw
-doas service openclaw_forward start
-
-# Access UI
-firefox http://127.0.0.1:18789/
-```
-
-### Managing Services
-
-```sh
-# Check status
-doas jls                                           # Jail status
-doas service openclaw_forward status               # Host forwarder
-doas jexec openclaw service openclaw_gateway status  # Jail gateway
-
-# View logs
-doas tail -f /var/log/openclaw_forward.log
-doas jexec openclaw tail -f /var/log/openclaw_gateway.log
-
-# Restart services
-doas service openclaw_forward restart
-doas jexec openclaw service openclaw_gateway restart
-```
-
-### Stopping Services
-
-```sh
-doas service openclaw_forward stop
-doas jexec openclaw service openclaw_gateway stop
-doas service jail stop openclaw
-```
-
----
-
-## TUI Manager (Optional)
-
-A beautiful terminal UI for managing the OpenClaw stack:
-
-```sh
-# Install
-mkdir -p ~/.local/bin
-cp openclaw-tui.zsh ~/.local/bin/openclaw-tui
-chmod +x ~/.local/bin/openclaw-tui
-
-# Run
-openclaw-tui
-```
-
-**Features:**
-- Start/stop/restart stack
-- View status and logs
-- Run OpenClaw wizards
-- Open Web UI
-
-**Requirements:** zsh, bsddialog
 
 ---
 
@@ -241,12 +151,7 @@ openclaw-tui
 
 ### Accessing Remotely (Optional)
 
-**Via SSH tunnel (recommended):**
-```sh
-ssh -L 18789:127.0.0.1:18789 yourhost
-```
-
-**Via Tailscale:** See [docs/INSTALL.md#tailscale-access](docs/INSTALL.md#tailscale-access)
+See [docs/INSTALL.md#tailscale-access](docs/INSTALL.md#tailscale-access)
 
 ---
 
@@ -262,7 +167,7 @@ doas jexec openclaw service openclaw_gateway start
 
 ### Rebuild Jail (preserves data)
 
-```sh
+```
 # Stop services
 doas service openclaw_forward stop
 doas jexec openclaw service openclaw_gateway stop
@@ -279,28 +184,12 @@ doas ./openclaw-freebsd-install.sh
 
 ---
 
-## Troubleshooting
-
-### Common Issues
-
-| Symptom | Solution |
-|---------|----------|
-| "Connection refused" to localhost:18789 | Check both services are running |
-| Jail won't start | Verify bridge0 exists, check jail.conf |
-| Gateway crashes on startup | Check logs, verify clipboard stub |
-| No internet in jail | Check pf NAT rules, test DNS |
-
-**Full guide:** [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
-
----
-
 ## Contributing
 
 Contributions welcome! Please:
 
-1. Test on FreeBSD 15.0+
-2. Follow FreeBSD coding style
-3. Update documentation
+1. Test on other releases
+2. Update documentation
 4. Add to CHANGELOG.md
 
 ---
@@ -312,8 +201,8 @@ Contributions welcome! Please:
 | FreeBSD 15.0 | ✅ Tested | Primary target |
 | FreeBSD 14.x | ⚠️ Should work | Untested |
 | AMD GPUs | ✅ Works | amdgpu driver |
-| Intel GPUs | ⚠️ Untested | Should work |
-| NVIDIA GPUs | ⚠️ Limited | FreeBSD driver limitations |
+| NVIDIA GPUs | ⚠️ Untested | Should work |
+| Intel GPUs | ⚠️ Limited | FreeBSD driver limitations |
 
 ---
 
@@ -346,8 +235,3 @@ Configuration files and documentation: CC0 / Public Domain
 
 See [CHANGELOG.md](CHANGELOG.md) for version history.
 
----
-
-**Maintained by:** Community  
-**Last Updated:** 2025-02-01  
-**Version:** 1.0.0
