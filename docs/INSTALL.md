@@ -25,7 +25,6 @@
 # Install on host system
 doas pkg install -y \
   jail \
-  ezjail \
   sysrc \
   pf \
   socat \
@@ -89,43 +88,30 @@ doas pkg install -y \
 ## Host System Setup
 
 ### Step 1: Create ZFS Datasets
+```
+doas zfs create -o mountpoint=/usr/jails -o atime=0 -o compressions=zstd zroot/usr/jails
+doas zfs create -o mountpoint=/usr/jails/openclaw -o atime=0 -o compressions=zstd zroot/usr/jails/openclaw
+```
+#### If running on localhost, I stronlgly recommemend setting a storage quota
+```
+doas zfs set quota=50G zroot/usr/jail/openclaw
+```
 
-```sh
-# Jail root (can be destroyed/recreated)
-doas zfs create -o mountpoint=/usr/jails zroot/usr/jails
-doas zfs create -o mountpoint=/usr/jails/openclaw zroot/usr/jails/openclaw
-
-# Persistent user home (adjust username)
-USERNAME="your-username"  # Change this!
-doas zfs create -o mountpoint=/home/${USERNAME} zroot/home/${USERNAME}
-
-# Persistent workspace
-doas zfs create -o mountpoint=/home/${USERNAME}/ocDownloads \
-  zroot/home/${USERNAME}/ocDownloads
-
-# Create request directory for elevated commands
-doas mkdir -p /var/run/openclaw-requests
-doas chown ${USERNAME}:${USERNAME} /var/run/openclaw-requests
+If you want to give your openclaw a shared space, create a dataset on the host
+```
+doas zfs create -o mountpoint=/PATH/TO/SHARED/DIRECTORY -o atime=0 compression=zstd zroot/usr/jail/openclaw/PATH/TO/SHARED/DIRECTORY
 ```
 
 ### Step 2: Configure Network (bridge0)
 
 Add to `/etc/rc.conf`:
 
-```sh
+```
 doas sysrc cloned_interfaces+="bridge0"
 doas sysrc ifconfig_bridge0="inet 10.30.0.1/24 up"
 ```
-
-Create the bridge:
-
-```sh
-doas service netif restart
+Reboot, it should now be visible in ifconfig. 
 ```
-
-Verify:
-
-```sh
 ifconfig bridge0
 # Should show: inet 10.30.0.1 netmask 0xffffff00
 ```
@@ -136,22 +122,20 @@ ifconfig bridge0
 
 Create `/etc/pf.conf`:
 
-```pf
+```
 # /etc/pf.conf
 
 ext_if   = "rge0"           # CHANGE THIS: Your WAN interface (ifconfig to check)
-ts_if    = "tailscale0"     # Optional: Tailscale interface
+ts_if    = "tailscale0"     # Optional: Tailscale interface (if using)
 jail_if  = "bridge0"
-jail_net = "10.30.0.0/24"
+jail_net = "10.30.0.0/24"   
 
 # Host-side jail gateway IP (bridge0 IP on host)
 host_jail_ip = "10.30.0.1"
 
 # OpenClaw in jail
-openclaw_ip   = "10.30.0.10"
-openclaw_port = "18789"
-
-kdeconnect_ports = "1714:1764"  # Optional: KDE Connect
+openclaw_ip   = "10.30.0.10" # Change this to your openclaws jail IP. Check /etc/jail.conf.d/openclaw.conf
+openclaw_port = "18789" # Default Openclaw port
 
 ##### OPTIONS
 set block-policy drop
@@ -195,7 +179,7 @@ pass out on $ts_if proto { tcp udp } from ($ts_if) port $kdeconnect_ports keep s
 
 Enable and load pf:
 
-```sh
+```
 doas sysrc pf_enable="YES"
 doas sysrc pflog_enable="YES"
 
@@ -205,191 +189,28 @@ doas pfctl -nf /etc/pf.conf
 # Load rules
 doas service pf start
 ```
-
-### Step 4: Install socat Forwarding Service
-
-**Note:** The automated installer (Step 8) will create this service for you. This section is for reference or manual installation.
-
-Create `/usr/local/etc/rc.d/openclaw_forward`:
-
-```sh
-doas tee /usr/local/etc/rc.d/openclaw_forward <<'EOF'
-#!/bin/sh
-#
-# PROVIDE: openclaw_forward
-# REQUIRE: NETWORKING
-# KEYWORD: shutdown
-#
-# Add to /etc/rc.conf:
-#   openclaw_forward_enable="YES"
-#   openclaw_forward_jail_ip="10.30.0.10"  # optional
-#   openclaw_forward_port="18789"          # optional
-#
-
-. /etc/rc.subr
-
-name="openclaw_forward"
-rcvar="openclaw_forward_enable"
-
-load_rc_config $name
-
-: ${openclaw_forward_enable:="NO"}
-: ${openclaw_forward_jail_ip:="10.30.0.10"}
-: ${openclaw_forward_port:="18789"}
-: ${openclaw_forward_bind:="127.0.0.1"}
-: ${openclaw_forward_pidfile:="/var/run/${name}.pid"}
-: ${openclaw_forward_log:="/var/log/${name}.log"}
-
-pidfile="${openclaw_forward_pidfile}"
-
-start_cmd="${name}_start"
-stop_cmd="${name}_stop"
-status_cmd="${name}_status"
-
-openclaw_forward_start()
-{
-    if [ ! -x /usr/local/bin/socat ]; then
-        err 1 "socat not found: pkg install socat"
-    fi
-
-    # Check if already running
-    if [ -f "${pidfile}" ]; then
-        pid=$(cat "${pidfile}" 2>/dev/null)
-        if [ -n "${pid}" ] && kill -0 "${pid}" 2>/dev/null; then
-            echo "${name} already running as pid ${pid}."
-            return 0
-        fi
-        rm -f "${pidfile}"
-    fi
-
-    echo "Starting ${name}."
-    /usr/local/bin/socat \
-        TCP-LISTEN:${openclaw_forward_port},bind=${openclaw_forward_bind},fork,reuseaddr \
-        TCP:${openclaw_forward_jail_ip}:${openclaw_forward_port} \
-        >> "${openclaw_forward_log}" 2>&1 &
-
-    echo $! > "${pidfile}"
-
-    # Verify it started
-    sleep 0.2
-    pid=$(cat "${pidfile}" 2>/dev/null)
-    if [ -n "${pid}" ] && kill -0 "${pid}" 2>/dev/null; then
-        echo "${name} started as pid ${pid}."
-        return 0
-    fi
-
-    echo "${name} failed to start. Check ${openclaw_forward_log}"
-    rm -f "${pidfile}"
-    return 1
-}
-
-openclaw_forward_stop()
-{
-    if [ ! -f "${pidfile}" ]; then
-        echo "${name} not running (no pidfile)."
-        return 0
-    fi
-
-    pid=$(cat "${pidfile}" 2>/dev/null)
-    if [ -z "${pid}" ]; then
-        echo "${name} not running (empty pidfile)."
-        rm -f "${pidfile}"
-        return 0
-    fi
-
-    if ! kill -0 "${pid}" 2>/dev/null; then
-        echo "${name} not running (stale pidfile)."
-        rm -f "${pidfile}"
-        return 0
-    fi
-
-    echo "Stopping ${name} (pid ${pid})."
-    kill "${pid}" 2>/dev/null
-
-    # Wait for exit
-    i=0
-    while kill -0 "${pid}" 2>/dev/null; do
-        i=$((i + 1))
-        [ "${i}" -ge 10 ] && break
-        sleep 0.5
-    done
-
-    if kill -0 "${pid}" 2>/dev/null; then
-        echo "Forcing ${name} to stop."
-        kill -9 "${pid}" 2>/dev/null
-    fi
-
-    rm -f "${pidfile}"
-    echo "${name} stopped."
-}
-
-openclaw_forward_status()
-{
-    if [ ! -f "${pidfile}" ]; then
-        echo "${name} is not running."
-        return 1
-    fi
-
-    pid=$(cat "${pidfile}" 2>/dev/null)
-    if [ -z "${pid}" ]; then
-        echo "${name} is not running (empty pidfile)."
-        return 1
-    fi
-
-    if kill -0 "${pid}" 2>/dev/null; then
-        echo "${name} is running as pid ${pid}."
-        return 0
-    fi
-
-    echo "${name} is not running (stale pidfile)."
-    return 1
-}
-
-run_rc_command "$1"
-EOF
-```
-
-Make it executable:
-
-```sh
-doas chmod +x /usr/local/etc/rc.d/openclaw_forward
-```
-
-Enable the service:
-
-```sh
-doas sysrc openclaw_forward_enable="YES"
-doas sysrc openclaw_forward_jail_ip="10.30.0.10"
-doas sysrc openclaw_forward_port="18789"
-```
-
-**Note:** Don't start it yet - we need the jail running first.
-
----
+--- 
 
 ## Jail Configuration
 
-### Step 5: Create Jail fstab
+### Step 6: Create Jail fstab
 
-Create `/etc/jail.fstab.openclaw` (update username!):
+Create `/etc/jail.fstab.openclaw`:
 
-```sh
-USERNAME="your-username"  # Change this!
-
-doas tee /etc/jail.fstab.openclaw <<EOF
+```
 # Allow access to shared data directory
-/home/${USERNAME}/ocDownloads	/usr/jails/openclaw/home/${USERNAME}/ocDownloads	nullfs	rw,noatime	0	0
+/PATH/TO/SHARED/DIRECTORY	/usr/jails/openclaw/PATH/TO/SHARED/DIRECTORY
 
 # Allow request to elevated privileged commands
 /var/run/openclaw-requests	/usr/jails/openclaw/var/run/openclaw-requests	nullfs	rw,noatime	0	0
 EOF
 ```
 
-### Step 6: Create Jail Configuration
+### Step 7: Create Jail Configuration
 
 Create `/etc/jail.conf.d/openclaw.conf`:
 
-```sh
+```
 doas mkdir -p /etc/jail.conf.d
 
 doas tee /etc/jail.conf.d/openclaw.conf <<'EOF'
@@ -420,57 +241,54 @@ doas sysrc jail_enable="YES"
 doas sysrc jail_conf="/etc/jail.conf.d/*.conf"
 ```
 
-### Step 7: Bootstrap Jail
+### Step 8: Install Jail
 
-Extract FreeBSD base:
-
-```sh
-doas tar -xf /usr/freebsd-dist/base.txz -C /usr/jails/openclaw
+```
+doas bsdinstall jail /usr/jails/openclaw
 ```
 
 Copy DNS configuration:
 
-```sh
+```
 doas cp /etc/resolv.conf /usr/jails/openclaw/etc/
 ```
 
 Create mount points inside jail:
 
-```sh
-USERNAME="your-username"  # Change this!
-
-doas mkdir -p /usr/jails/openclaw/home/${USERNAME}/ocDownloads
+```
+doas mkdir -p /usr/jails/openclaw/PATH/TO/SHARED/DIRECTORY
 doas mkdir -p /usr/jails/openclaw/var/run/openclaw-requests
 ```
 
 Start the jail:
 
-```sh
+```
 doas service jail start openclaw
 ```
 
 Verify:
 
-```sh
-doas jls
-# Should show: openclaw jail running
 ```
-
+doas jls
+```
+```
+doas jexec openclaw ifconfig
+```
 ---
 
 ## OpenClaw Installation
 
-### Step 8: Run Automated Installer
+### Step 9: Run Automated Installer
 
 Download the installer script (or use the one provided):
 
-```sh
+```
 chmod +x openclaw-freebsd-install.sh
 doas ./openclaw-freebsd-install.sh
 ```
 
 The installer will:
-1. Prompt for your username
+1. Prompt for your username #note this needs to be your current username. run `id` in your terminal.
 2. Install Node.js and dependencies in jail
 3. Install OpenClaw globally
 4. Create jail gateway service
@@ -499,53 +317,44 @@ If you prefer to install manually, see [Manual Installation Steps](#manual-insta
 
 ## Service Configuration
 
-### Step 9: Verify Jail Gateway Service
+### Step 10: Verify Jail Gateway Service
 
 The installer creates `/usr/local/etc/rc.d/openclaw_gateway` inside the jail.
 
 Check it's running:
-
-```sh
+```
 doas jexec openclaw service openclaw_gateway status
 ```
 
 If not running, start it:
-
-```sh
+```
 doas jexec openclaw service openclaw_gateway start
 ```
 
 View logs:
-
-```sh
+```
 doas jexec openclaw tail -f /var/log/openclaw_gateway.log
 ```
 
 ### Step 10: Verify Host Forwarding Service
 
-**Note:** If you used the automated installer, this service was already created and started. This section is for verification.
-
 The socat forwarder should already be running:
-
-```sh
+```
 doas service openclaw_forward status
 ```
 
 If it's not running (manual installation), start it:
-
-```sh
+```
 doas service openclaw_forward start
 ```
 
 Verify:
-
-```sh
+```
 doas service openclaw_forward status
 ```
 
 Check logs:
-
-```sh
+```
 doas tail -f /var/log/openclaw_forward.log
 ```
 
@@ -554,8 +363,7 @@ doas tail -f /var/log/openclaw_forward.log
 ## Testing & Verification
 
 ### Network Stack Test
-
-```sh
+```
 # Host: Verify bridge
 ifconfig bridge0
 
@@ -563,7 +371,7 @@ ifconfig bridge0
 doas pfctl -sn
 
 # Jail: Verify IP configuration
-doas jexec openclaw ifconfig epair0b
+doas jexec openclaw ifconfig
 
 # Jail: Test default route
 doas jexec openclaw netstat -rn
@@ -573,8 +381,7 @@ doas jexec openclaw fetch -qo- https://www.freebsd.org | head
 ```
 
 ### Gateway Service Test
-
-```sh
+```
 # Jail: Check process
 doas jexec openclaw ps aux | grep openclaw
 
@@ -584,14 +391,10 @@ doas jexec openclaw sockstat -4l | grep 18789
 
 # Host: Test socat forwarding
 fetch -qo- http://127.0.0.1:18789/ | head
-
-# Or use curl
-curl -I http://127.0.0.1:18789/
 ```
 
 ### Retrieve Authentication Token
-
-```sh
+```
 USERNAME="your-username"  # Change this!
 
 doas jexec openclaw su - ${USERNAME} -c 'cat ~/.openclaw/gateway.token'
@@ -600,7 +403,6 @@ doas jexec openclaw su - ${USERNAME} -c 'cat ~/.openclaw/gateway.token'
 ### Access Web UI
 
 Open your browser to:
-
 ```
 http://127.0.0.1:18789/
 ```
