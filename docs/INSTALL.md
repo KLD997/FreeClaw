@@ -32,6 +32,7 @@ doas pkg install -y \
   zsh \
   bsddialog \
   node22 \
+  nerd-fonts \
   npm-node22
 ```
 
