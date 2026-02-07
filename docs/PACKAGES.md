@@ -1,3 +1,5 @@
+-- REFERENCE ONLY --
+
 # OpenClaw FreeBSD 15 - Package Requirements
 
 ## Host System Packages
@@ -34,17 +36,8 @@ doas pkg install -y \
 | `npm-node22` | Runtime | Node package manager | Yes |
 
 ### Optional Host Packages
-
-```sh
-# Development tools
-doas pkg install -y vim tmux htop
-
-# Web browser (for UI access)
-doas pkg install -y firefox chromium
-
-# Tailscale (for remote access)
-doas pkg install -y tailscale
-```
+ Tailscale
+ `doas pkg install tailscale`
 
 ---
 
