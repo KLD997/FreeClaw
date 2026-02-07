@@ -1,4 +1,6 @@
+# REFERENCE STEP 1 IN INSTALL.md
 # Allow access to shared data directory
+# Mount First doas/sudo zfs create -o mountpoint=zroot/choose/a/directory
 /home/kld/ocDownloads	/usr/jails/openclaw/home/kld/ocDownloads	nullfs 	rw,noatime  	0	0
 
 # Allow request to evelvated privileged commands
