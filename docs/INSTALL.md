@@ -92,7 +92,7 @@ doas pkg install -y \
 doas zfs create -o mountpoint=/usr/jails -o atime=0 -o compressions=zstd zroot/usr/jails
 doas zfs create -o mountpoint=/usr/jails/openclaw -o atime=0 -o compressions=zstd zroot/usr/jails/openclaw
 ```
-#### If running on localhost, I stronlgly recommemend setting a storage quota
+#### If running on localhost, I strongly recommemend setting a storage quota
 ```
 doas zfs set quota=50G zroot/usr/jail/openclaw
 ```
