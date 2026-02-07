@@ -6,8 +6,8 @@
 
 ## Table of Contents
 
-1. [Prerequisites](#prerequisites)
-2. [Architecture Overview](#architecture-overview)
+1. [Architecture Overview](#architecture-overview)
+2. [Prerequisites](#prerequisites)
 3. [Host System Setup](#host-system-setup)
 4. [Jail Configuration](#jail-configuration)
 5. [OpenClaw Installation](#openclaw-installation)
@@ -17,34 +17,6 @@
 
 ---
 
-## Prerequisites
-
-### Required Packages
-
-```sh
-# Install on host system
-doas pkg install -y \
-  jail \
-  sysrc \
-  pf \
-  socat \
-  git \
-  zsh \
-  bsddialog \
-  node22 \
-  nerd-fonts \
-  npm-node22
-```
-
-### System Requirements
-
-- FreeBSD 15.0 or later
-- ZFS filesystem (recommended)
-- Root/doas access
-- 5GB+ free disk space
-- Network connectivity
-
----
 
 ## Architecture Overview
 
@@ -85,6 +57,25 @@ doas pkg install -y \
 - **nullfs mounts:** Shared directories between host and jail
 
 ---
+
+## Prerequisites
+
+### Required Packages
+
+```
+# Install on host system
+doas pkg install -y \
+  jail \
+  sysrc \
+  pf \
+  socat \
+  git \
+  zsh \
+  bsddialog \
+  node22 \
+  nerd-fonts \
+  npm-node22
+```
 
 ## Host System Setup
 
