@@ -26,7 +26,7 @@ This repository contains a complete, tested setup for running [OpenClaw](https:/
 
 **Prerequisites:** FreeBSD 15.0+, root/doas access, 5GB+ free space
 
-```sh
+```
 # 1. Clone this repository
 git clone https://github.com/yourusername/openclaw-freebsd.git
 cd openclaw-freebsd
@@ -39,7 +39,6 @@ doas ./openclaw-freebsd-install.sh
 firefox http://127.0.0.1:18789/
 ```
 
-**Installation time:** ~15-30 minutes  
 **Detailed guide:** See [docs/INSTALL.md](docs/INSTALL.md)
 
 ---
@@ -49,7 +48,6 @@ firefox http://127.0.0.1:18789/
 | Document | Purpose | Audience |
 |----------|---------|----------|
 | **[INSTALL.md](docs/INSTALL.md)** | Complete installation guide | All users |
-| **[QUICKSTART.md](docs/QUICKSTART.md)** | Fast setup (copy-paste commands) | Experienced users |
 | **[HARDWARE.md](docs/HARDWARE.md)** | Tested hardware specifications | Reference |
 | **[PACKAGES.md](docs/PACKAGES.md)** | Required packages and dependencies | Reference |
 | **[TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)** | Common issues and solutions | When things break |
