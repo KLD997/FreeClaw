@@ -1,7 +1,7 @@
 #!/bin/sh
 # openclaw-freebsd-install.sh
 #
-# Install/repair OpenClaw inside a FreeBSD jail using the known-good service layout:
+# Install/repair OpenClaw inside a FreeBSD jail
 # - Jail service: openclaw_gateway (wrapper-managed PID + PATH/HOME)
 # - Clipboard FreeBSD module stub (prevents startup crash on some versions)
 #
