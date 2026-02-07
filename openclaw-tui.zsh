@@ -1,8 +1,5 @@
 #!/usr/bin/env zsh
-# openclaw-tui.zsh — bsddialog-based TUI for OpenClaw jail management
-#
-# Simplified: no forwarder service (use pf.conf rdr on lo0 instead)
-# UI: bsddialog menus
+# bsddialog-based TUI for OpenClaw jail management
 #
 # Env overrides:
 #   JAIL_NAME=openclaw
