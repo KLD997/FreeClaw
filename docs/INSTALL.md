@@ -81,8 +81,8 @@ doas pkg install -y \
 
 ### Step 1: Create ZFS Datasets
 ```
-doas zfs create -o mountpoint=/usr/jails -o atime=0 -o compressions=zstd zroot/usr/jails
-doas zfs create -o mountpoint=/usr/jails/openclaw -o atime=0 -o compressions=zstd zroot/usr/jails/openclaw
+doas zfs create -o mountpoint=/usr/jails -o atime=off -o compression=zstd zroot/usr/jails
+doas zfs create -o mountpoint=/usr/jails/openclaw -o atime=off -o compression=zstd zroot/usr/jails/openclaw
 ```
 #### If running on localhost, I strongly recommemend setting a storage quota
 ```
