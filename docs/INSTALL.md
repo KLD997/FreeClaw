@@ -101,8 +101,10 @@ Add to `/etc/rc.conf`:
 ```
 doas sysrc cloned_interfaces+="bridge0"
 doas sysrc ifconfig_bridge0="inet 10.30.0.1/24 up"
+
+doas service netif restart
 ```
-Reboot, it should now be visible in ifconfig. 
+It should now be visible in ifconfig. 
 ```
 ifconfig bridge0
 # Should show: inet 10.30.0.1 netmask 0xffffff00
