@@ -86,7 +86,7 @@ doas zfs create -o mountpoint=/usr/jails/openclaw -o atime=0 -o compressions=zst
 ```
 #### If running on localhost, I strongly recommemend setting a storage quota
 ```
-doas zfs set quota=50G zroot/usr/jail/openclaw
+doas zfs set quota=50G zroot/usr/jails/openclaw
 ```
 
 If you want to give your openclaw a shared space, create a dataset on the host
