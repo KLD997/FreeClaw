@@ -1,7 +1,7 @@
 # System Hardware Specifications
 
 **FreeBSD 15.0 Desktop Workstation**  
-*Last Updated: 2025-02-01*
+*Last Updated: 2026-02-01*
 
 [Hardware Probe #0934dfebbd](https://bsd-hardware.info/?probe=0934dfebbd)
 
@@ -464,7 +464,7 @@ sysctl dev.amdgpu | grep temp
 
 | Date | FreeBSD Version | Probe ID |
 |------|-----------------|----------|
-| 2025-02-01 | 15.0-p1 | [0934dfebbd](https://bsd-hardware.info/?probe=0934dfebbd) |
+| 2026-02-01 | 15.0-p1 | [0934dfebbd](https://bsd-hardware.info/?probe=0934dfebbd) |
 
 ---
 

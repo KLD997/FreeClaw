@@ -764,6 +764,6 @@ doas cp /usr/jails/openclaw/tmp/openclaw-backup.tar.gz ~/backups/
 
 ---
 
-**Last Updated:** 2025-02-01  
+**Last Updated:** 2026-02-01  
 **FreeBSD Version:** 15.0  
 **Tested Configuration:** ASRock B650M, AMD Ryzen 5 7600, 32GB RAM
