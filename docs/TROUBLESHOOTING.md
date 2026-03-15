@@ -528,4 +528,4 @@ doas jexec openclaw tail -n 50 /var/log/openclaw_gateway.log
 
 ---
 
-**Last Updated:** 2025-02-01
+**Last Updated:** 2026-02-01
